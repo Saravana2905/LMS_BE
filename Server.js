@@ -18,7 +18,7 @@ app.use('/course',courseRoute)
 
 //connection to mongodb
 mongoose.
-connect('mongodb+srv://admin:admin123@cluster0.mbkdi.mongodb.net/TITA?retryWrites=true&w=majority&appName=Cluster0')
+connect(process.env.MongoURI)
 .then(() => {
     console.log('connected to MongoDB')
     app.listen(process.env.Port, ()=> {
