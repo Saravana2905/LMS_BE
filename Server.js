@@ -1,30 +1,24 @@
-const express = require('express')
-const app = express();
-const mongoose = require('mongoose')
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const courseRoutes = require('./Routes/courseRoute');
 require('dotenv').config();
-const courseRoute = require('./Routes/courseRoute');
 
+const app = express();
 
-//middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use('/courses', courseRoutes);
 
-//test route
-app.get('/',(req,res)=>{
-    res.send('<script>alert("Connected and working");</script>');
-})
-//Routes
-app.use('/course',courseRoute)
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-//connection to mongodb
-mongoose.
-connect(process.env.MongoURI)
-.then(() => {
-    console.log('connected to MongoDB')
-    app.listen(process.env.Port, ()=> {
-        console.log(`Node API app is running on port ${process.env.Port}`)
-        console.log(`http://localhost:${process.env.Port}`)
-    });
-}).catch((error) => {
-    console.log(error)
-})
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
