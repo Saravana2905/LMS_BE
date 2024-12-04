@@ -1,108 +1,132 @@
-const Course = require('../Modules/courseModule')
+const Course = require('../Model/courseModel')
 
-exports.createCourse = async(req,res)=>{
-    try {
-        const { 
-            courseTitle, courseDescription, courseCategory,courseImage, courseDuration, courseSeat, courseAmount, courseVideoTitle, courseVideo, courseThumbnail,courseAttachment} = req.body
-            if (!courseTitle || !courseDescription || !courseCategory || !courseImage || !courseDuration || !courseSeat || !courseAmount || !courseVideoTitle || !courseVideo || !courseThumbnail || !courseAttachment) {
-                return res.status(400).send('Please fill in all the fields');
-            }
+exports.createCourse = async (req, res) => {
+  try {
+    const { courseTitle, courseDescription, courseCategory, courseImage, courseDuration, courseSeat, courseAmount, courseVideoTitle, courseVideo, courseThumbnail, courseAttachment } = req.body;
 
-            const course = await Course.create({
-                courseTitle,
-        courseDescription,
-        courseCategory,
-        courseImage,
-        courseDuration,
-        courseSeat,
-        courseAmount,
-        courseVideoTitle,
-        courseVideo,
-        courseThumbnail,
-        courseAttachment
-            })
-
-            res.status(200).json({
-                success: true,
-                course
-            });
-    } catch (error) {
-        console.error("Error creating course:", error.message);
-    res.status(500).json({
-        success:false,
-        message:"Error creating course"
-    });
-    }
-}
-
-
-exports.getCourse = async(req,res)=>{
-    try{
-        const course = await Course.find();
-    const totalCourse = course.length;
-    res.status(200).json({
-        success: true,
-        totalCourse,
-        course
+    // Validate required fields
+    if (!courseTitle || !courseDescription || !courseCategory || !courseImage || !courseDuration || !courseSeat || !courseAmount || !courseVideoTitle || !courseVideo || !courseThumbnail || !courseAttachment) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
       });
     }
-    catch(error){
-        console.error("Error getting course:", error.message);
+
+    const newCourse = new Course({ courseTitle, courseDescription, courseCategory, courseImage, courseDuration, courseSeat, courseAmount, courseVideoTitle, courseVideo, courseThumbnail, courseAttachment });
+
+    await newCourse.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Course created successfully",
+      course: newCourse
+    });
+  } catch (error) {
+    console.error("Error creating course:", error.message);
     res.status(500).json({
-        success: false,
-        message:"Error getting course"
+      success: false,
+      message: "Error creating course",
+      error: error.message
     });
-      }
-    
-}
-exports.getCourseById = async(req,res)=>{
-    try{
-        const {id} = req.params
-    const course = await Course.findById(id)
-    if (!course) {
-        return res.status(404).json({message: `cannot find by id ${id}`})}
+  }
+};
+
+
+
+
+exports.getCourse = async (req, res) => {
+  try {
+    const courses = await Course.find();
+    const totalCourses = courses.length;
+
     res.status(200).json({
-        success: true,
-        course
-      });}
-      catch(error){
-        console.error("Error getting course by id:", error.message);
-        res.status(500).json({
-        success: false,
-        message:"Error getting course by id:"
+      success: true,
+      totalCourses,
+      courses
     });
-      }
-}
+  } catch (error) {
+    console.error("Error getting courses:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error getting courses",
+      error: error.message
+    });
+  }
+};
+
+exports.getCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: `Course not found with id: ${id}`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      course
+    });
+  } catch (error) {
+    console.error("Error getting course by id:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error getting course by id",
+      error: error.message
+    });
+  }
+};
 
 exports.updateCourse = async (req, res) => {
-    try {
-        const courseId = req.params.id;
-        const updates = req.body;
+  try {
+    const courseId = req.params.id;
+    const updates = req.body;
 
-        const course = await Course.findByIdAndUpdate(
-            courseId,
-            updates,
-            { new: true, runValidators: true }
-        );
-
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: "Course not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            course
-        });
-    } catch (error) {
-        console.error("Error updating course:", error.message);
-        res.status(500).json({
-            success: false,
-            message: "Error updating course"
-        });
+    // Validate if course exists before updating
+    const existingCourse = await Course.findById(courseId);
+    if (!existingCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
     }
+
+    // Handle file uploads if present
+    if (req.files && Object.keys(req.files).length > 0) {
+      const fileTypes = ['courseImage', 'courseVideo', 'courseThumbnail', 'courseAttachment'];
+      const uploadedFiles = {};
+
+      for (const fileType of fileTypes) {
+        if (req.files[fileType]) {
+          const file = req.files[fileType][0];
+          const result = await cloudinary.uploader.upload(file.path);
+          updates[fileType] = result.secure_url;
+          fs.unlinkSync(file.path);
+        }
+      }
+    }
+
+    const course = await Course.findByIdAndUpdate(
+      courseId,
+      updates,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      course
+    });
+  } catch (error) {
+    console.error("Error updating course:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error updating course",
+      error: error.message
+    });
+  }
 };
 
 exports.deleteCourse = async (req, res) => {

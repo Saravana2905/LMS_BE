@@ -3,11 +3,17 @@ const app = express();
 const mongoose = require('mongoose')
 require('dotenv').config();
 const courseRoute = require('./Routes/courseRoute');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
 
 //middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 //test route
 app.get('/',(req,res)=>{
