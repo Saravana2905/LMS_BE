@@ -19,7 +19,6 @@ router.get('/getCourseById/:id', courseController.getCourseById);
 
 // Route for updating a course
 router.put('/updateCourseById/:id', upload.fields([
-  { name: 'courseImage', maxCount: 1 },
   { name: 'courseVideo', maxCount: 1 },
   { name: 'courseThumbnail', maxCount: 1 },
   { name: 'courseAttachment', maxCount: 10 },

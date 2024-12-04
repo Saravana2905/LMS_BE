@@ -13,10 +13,6 @@ const courseSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  courseImage: {
-    type: String,
-    required: true
-  },
   courseDuration: {
     type: Number,
     required: true

@@ -16,7 +16,6 @@ exports.createCourse = async (req, res) => {
     }
 
     // Upload files to Cloudinary if present
-    const courseImage = req.files['courseImage'] ? await cloudinary.uploader.upload(req.files['courseImage'][0].path) : null;
     const courseVideo = req.files['courseVideo'] ? await cloudinary.uploader.upload(req.files['courseVideo'][0].path) : null;
     const courseThumbnail = req.files['courseThumbnail'] ? await cloudinary.uploader.upload(req.files['courseThumbnail'][0].path) : null;
     const courseAttachments = req.files['courseAttachment'] ? await Promise.all(req.files['courseAttachment'].map(file => cloudinary.uploader.upload(file.path))) : [];
@@ -27,7 +26,6 @@ exports.createCourse = async (req, res) => {
       courseTitle,
       courseDescription,
       courseCategory,
-      courseImage: courseImage ? courseImage.secure_url : '',
       courseDuration,
       courseSeat,
       courseAmount,
